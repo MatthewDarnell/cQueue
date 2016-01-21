@@ -3,19 +3,18 @@
 #include <stdlib.h>
 #include "queue.h"
 
-void init_queue(struct queue *q)
+void init_queue(struct queue **q)
 {
-    if(q == NULL){
-        q = (struct queue*)malloc(sizeof(struct queue));
+    if(*q == NULL){
+		*q = (struct queue*)malloc(sizeof(struct queue));
     }
-    q->tail = q->head = NULL;
-    pthread_mutex_init(&q->mutex, NULL);
+	(*q)->head = (*q)->tail = NULL;
+    pthread_mutex_init(&(*q)->mutex, NULL);
 }
 
 void enqueue(struct queue *q, void *mem, size_t nmemb)
 {
-    pthread_mutex_lock(&q->mutex);
-
+    pthread_mutex_lock(&(q->mutex));
     if(q->tail == NULL){
         q->tail = (struct queueitem*)malloc(sizeof(struct queueitem));
         q->tail->prev = NULL;

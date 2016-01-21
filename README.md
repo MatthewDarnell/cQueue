@@ -18,7 +18,40 @@ $ clang main.c queue.c -lpthread
 ```
 
 
-Sample Application:
+Sample Applications:
+
+```c
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+#include "queue.h"
+int main()
+{
+    struct queue q;
+    init_queue(&q);
+    enqueue(&q, "Hello, World!", 13);
+    enqueue(&q, "Another String", 14);
+    enqueue(&q, "Yet Another String Literal", 26);
+
+    char *buf = NULL;
+    size_t size = 0;
+    while((buf = (char*)deque(&q, &size, 1)) != 0) {
+        fprintf(stderr, "size=%lu data= %s\n", size, buf);
+        free(buf);
+    }
+    return 0;
+}
+```
+
+```console
+size=13 data= Hello, World!
+size=14 data= Another String
+size=26 data= Yet Another String Literal
+```
+
+
+
+Simple Multithreaded Application:
 ```c
 #include <stdio.h>
 #include <string.h>
@@ -30,21 +63,18 @@ struct queue q;
 void thread_one()
 {
     int i;
-    char string[32];
     for(i=0; i<100; i++){
-        sprintf(string, "%d", i);
-        enqueue(&q, string, strlen(string));
+        enqueue(&q, (void*)&i, sizeof(int));
     }
     pthread_exit(0);
 }
 
 void thread_two()
 {
-    int i;
-    char string[32];
+    int i, k;
     for(i=0; i<100; i++){
-        sprintf(string, "%d", 0-i);
-        enqueue(&q, string, strlen(string));
+        k = 0-i;
+        enqueue(&q, (void*)&k, sizeof(int));
     }
     pthread_exit(0);
 }
@@ -61,8 +91,9 @@ int main()
     int count=0, sum=0;
     while((buf = (char*)deque(&q, &size, 1)) != 0) {
         count++;
-        fprintf(stderr, "size=%lu data= %s\n", size, buf);
-        sum += atoi(buf);
+        int *value = (int*)buf;
+        fprintf(stderr, "size=%lu data= %d\n", size, *value);
+        sum += *value;
         free(buf);
     }
     fprintf(stderr, "Number of Elements.(%d) Sum.(%d)\n", count, sum);
@@ -73,13 +104,12 @@ int main()
 ...
 ...
 ...
-size=2 data= 99
-size=3 data= -95
-size=3 data= -96
-size=3 data= -97
-size=3 data= -98
-size=3 data= -99
+size=4 data= 98
+size=4 data= 99
+size=4 data= -98
+size=4 data= -99
 Number of Elements.(200) Sum.(0)
+
 ```
 ### Development
 

@@ -28,7 +28,8 @@ Sample Applications:
 int main()
 {
     struct queue q;
-    init_queue(&q);
+    struct queue *ptrQ = &q;
+    init_queue(&ptrQ);
     enqueue(&q, "Hello, World!", 13);
     enqueue(&q, "Another String", 14);
     enqueue(&q, "Yet Another String Literal", 26);
@@ -58,13 +59,13 @@ Simple Multithreaded Application:
 #include <stdlib.h>
 #include "queue.h"
 
-struct queue q;
+struct queue *q;
 
 void thread_one()
 {
     int i;
     for(i=0; i<100; i++){
-        enqueue(&q, (void*)&i, sizeof(int));
+        enqueue(q, (void*)&i, sizeof(int));
     }
     pthread_exit(0);
 }
@@ -74,7 +75,7 @@ void thread_two()
     int i, k;
     for(i=0; i<100; i++){
         k = 0-i;
-        enqueue(&q, (void*)&k, sizeof(int));
+        enqueue(q, (void*)&k, sizeof(int));
     }
     pthread_exit(0);
 }
@@ -89,13 +90,14 @@ int main()
     char *buf = NULL;
     size_t size;
     int count=0, sum=0;
-    while((buf = (char*)deque(&q, &size, 1)) != 0) {
+    while((buf = (char*)deque(q, &size, 1)) != 0) {
         count++;
         int *value = (int*)buf;
         fprintf(stderr, "size=%lu data= %d\n", size, *value);
         sum += *value;
         free(buf);
     }
+    free(q);
     fprintf(stderr, "Number of Elements.(%d) Sum.(%d)\n", count, sum);
     return 0;
 }
